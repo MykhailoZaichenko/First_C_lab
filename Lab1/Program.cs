@@ -9,7 +9,7 @@
 //кораблів. Вивести повідомлення про результати гри
 
 
-using System;
+//using System;
 
 class Program
 {
@@ -24,9 +24,9 @@ class Program
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
         Console.Write("Введіть розмір поля: ");
-        while (!int.TryParse(Console.ReadLine(), out fieldSize) || fieldSize <= 2)
+        while (!int.TryParse(Console.ReadLine(), out fieldSize) || fieldSize <= 0)
         {
-            Console.WriteLine("Некоректне значення! Введіть ціле додатне число, яке дорівнює чи більше 3.");
+            Console.WriteLine("Некоректне значення! Введіть ціле додатне число.");
             Console.Write("Введіть розмір поля: ");
         }
 
@@ -49,18 +49,25 @@ class Program
             Console.Clear();
             PrintField();
 
-            int x, y;
+            int input_x, input_y;
             while (true)
             {
-                Console.Write("Введіть координати пострілу (x y): ");
-                string[] input = Console.ReadLine().Split();
-                if (input.Length != 2 || !int.TryParse(input[0], out x) || !int.TryParse(input[1], out y) || x < 1 || x > fieldSize || y < 1 || y > fieldSize)
+                Console.Write("Введіть координату X: ");
+                if (!int.TryParse(Console.ReadLine(), out input_x) || input_x < 1 || input_x > fieldSize)
                 {
-                    Console.WriteLine("Некоректні координати! Спробуйте ще раз.");
+                    Console.WriteLine("Некоректна координата X! Спробуйте ще раз.");
                     continue;
                 }
-                x--; y--;
-                if (field[x, y] == 'X' || field[x, y] == '.')
+
+                Console.Write("Введіть координату Y: ");
+                if (!int.TryParse(Console.ReadLine(), out input_y) || input_y < 1 || input_y > fieldSize)
+                {
+                    Console.WriteLine("Некоректна координата Y! Спробуйте ще раз.");
+                    continue;
+                }
+
+                input_x--; input_y--;
+                if (field[input_x, input_y] == 'X' || field[input_x, input_y] == '.')
                 {
                     Console.WriteLine("Ви вже стріляли сюди! Спробуйте інше місце.");
                     continue;
@@ -75,10 +82,9 @@ class Program
                 {
                     for (int j = 0; j < ships[i].Length; j++)
                     {
-                        if (ships[i][j] == (x, y))
+                        if (ships[i][j] == (input_x, input_y))
                         {
-                            field[x, y] = 'X';
-                            Console.WriteLine("Влучив!");
+                            field[input_x, input_y] = 'X';
                             ships[i][j] = (-1, -1);
                             hit = true;
                             if (Array.TrueForAll(ships[i], pos => pos == (-1, -1)))
@@ -95,7 +101,7 @@ class Program
 
             if (!hit)
             {
-                field[x, y] = '.';
+                field[input_x, input_y] = '.';
                 Console.WriteLine("Промах!");
             }
 
