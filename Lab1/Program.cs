@@ -16,7 +16,7 @@ class Program
     static int shots;
     static char[,] field;
     static int remainingShips = 3;
-    //Масив кортежів в якому ми фіксуємо кількість кораблів. Вирішив використати його, бо при int[,] ships треба прописувати дуже багато для одного корабля:ships[i, 0], ships[i, 1] ships[i, 2], ships[i, 3] і це вигядає якось не гарно. 
+    //Масив кортежів в якому ми фіксуємо кількість кораблів. Вирішив використати його, бо при int[,] ships треба прописувати дуже багато для одного корабля: ships[i, 0], ships[i, 1] ships[i, 2], ships[i, 3] і це вигядає якось не гарно. 
     static (int, int)[][] ships = new (int, int)[remainingShips][];
 
 
@@ -89,6 +89,7 @@ class Program
                         field[input_x, input_y] = 'X';
                         ships[i][j] = (-1, -1);
                         hit = true;
+                        //Я трошки почитав документації і зрозумів, що в С# не можна видалити елемент з масиву, тож реалізовано способом перенесення в точку -1, -1. На що і є перевірка.
                         if (Array.TrueForAll(ships[i], pos => pos == (-1, -1)))
                         {
                             Console.WriteLine("Корабель знищено!");
