@@ -8,25 +8,112 @@
 //Гра закінчується після вичерпання усіх пострілів, або у разі знищення усіх 
 //кораблів. Вивести повідомлення про результати гри
 
-
-//using System;
-
 class Program
 {
     static int fieldSize;
     static int shots;
     static char[,] field;
-    static (int, int)[][] ships = new (int, int)[3][];
     static int remainingShips = 3;
+    static (int, int)[][] ships = new (int, int)[remainingShips][];
+
+    static void PlaceShips()
+    {
+        Random rnd = new Random();
+        for (int i = 0; i < remainingShips; i++)
+        {
+            bool placed_ships = false;
+            while (!placed_ships)
+            {
+                int x = rnd.Next(fieldSize);
+                int y = rnd.Next(fieldSize);
+                bool horizontal = rnd.Next(2) == 0;
+                //Перевірка чи можно розмістити корабель горизонтально
+                if (horizontal && y + 1 < fieldSize && field[x, y] == '~' && field[x, y + 1] == '~')
+                {
+                    ships[i] = new (int, int)[] { (x, y), (x, y + 1) };
+                    //перевірка розміщення
+                    field[x, y] = field[x, y + 1] = 'S';
+                    placed_ships = true;
+                }
+                //Перевірка чи можно розмістити корабель вертикально
+                else if (!horizontal && x + 1 < fieldSize && field[x, y] == '~' && field[x + 1, y] == '~')
+                {
+                    ships[i] = new (int, int)[] { (x, y), (x + 1, y) };
+                    //перевірка розміщення
+                    field[x, y] = field[x + 1, y] = 'S';
+                    placed_ships = true;
+                }
+            }
+        }
+
+    }
+
+    static void PrintField()
+    {
+        //Виводить верхній рядок з номерами стовпців. Знайшов декілька облегшуючих фунцій Join() робить послідовність з пробілами, а Enumerable.Range() створює послідовність чисел, щоб не писати цикли.
+        Console.WriteLine("  " + string.Join(" ", Enumerable.Range(1, fieldSize)));
+        for (int i = 0; i < fieldSize; i++)
+        {
+            Console.Write((i + 1).ToString().PadLeft(2) + " "); // Виводить номер рядка починаючи з 1. А ToString().PadLeft(2) робить ганішим вивод, тобто перетворює число в рядок, а потім додає перед числом пробіл, якщо воно однозначне, щоб усі номери рядків займали 2 символи.
+            for (int j = 0; j < fieldSize; j++)
+                Console.Write(field[i, j] + " "); // Виводить рядок поля
+            Console.WriteLine();
+        }
+    }
+
+    //Заповнюємо 'водою' поле
+    static void FillWater()
+    {
+        field = new char[fieldSize, fieldSize];
+        for (int i = 0; i < fieldSize; i++)
+            for (int j = 0; j < fieldSize; j++)
+                field[i, j] = '~';
+    }
+
+    //Пеевіряємо на влучання у корабель
+    static void HitCheck(ref int input_x, ref int input_y)
+    {
+        bool hit = false;
+        for (int i = 0; i < ships.Length; i++)
+        {
+            if (ships[i] != null)
+            {
+                for (int j = 0; j<ships[i].Length; j++)
+                {
+                    if (ships[i][j] == (input_x, input_y))
+                    {
+                        field[input_x, input_y] = 'X';
+                        ships[i][j] = (-1, -1);
+                        hit = true;
+                        if (Array.TrueForAll(ships[i], pos => pos == (-1, -1)))
+                        {
+                            Console.WriteLine("Корабель знищено!");
+                            ships[i] = null;
+                            remainingShips--;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!hit)
+        {
+        field[input_x, input_y] = '.';
+        Console.WriteLine("Промах!");
+        }
+    }
 
     static void Main()
     {
+        //Щоб вивод був українською
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
+        //Стартове меню
         Console.Write("Введіть розмір поля: ");
-        while (!int.TryParse(Console.ReadLine(), out fieldSize) || fieldSize <= 0)
+        while (!int.TryParse(Console.ReadLine(), out fieldSize) || fieldSize <= 2)
         {
-            Console.WriteLine("Некоректне значення! Введіть ціле додатне число.");
+            Console.WriteLine("Некоректне значення! Введіть ціле додатне число. Більше 2.");
             Console.Write("Введіть розмір поля: ");
         }
 
@@ -37,13 +124,12 @@ class Program
             Console.Write("Введіть кількість пострілів: ");
         }
 
-        field = new char[fieldSize, fieldSize];
-        for (int i = 0; i < fieldSize; i++)
-            for (int j = 0; j < fieldSize; j++)
-                field[i, j] = '~';
-
+        //Заповнюємо "водою" поле
+        FillWater();
+        //Додаємо кораблі
         PlaceShips();
 
+        //Основнйи геймплей
         while (shots > 0 && remainingShips > 0)
         {
             Console.Clear();
@@ -75,35 +161,8 @@ class Program
                 break;
             }
 
-            bool hit = false;
-            for (int i = 0; i < ships.Length; i++)
-            {
-                if (ships[i] != null)
-                {
-                    for (int j = 0; j < ships[i].Length; j++)
-                    {
-                        if (ships[i][j] == (input_x, input_y))
-                        {
-                            field[input_x, input_y] = 'X';
-                            ships[i][j] = (-1, -1);
-                            hit = true;
-                            if (Array.TrueForAll(ships[i], pos => pos == (-1, -1)))
-                            {
-                                Console.WriteLine("Корабель знищено!");
-                                ships[i] = null;
-                                remainingShips--;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!hit)
-            {
-                field[input_x, input_y] = '.';
-                Console.WriteLine("Промах!");
-            }
+            //Перевірка на влучання у корабель
+            HitCheck(ref input_x, ref input_y);
 
             shots--;
             Console.WriteLine("Натисніть Enter для продовження...");
@@ -112,50 +171,7 @@ class Program
 
         Console.Clear();
         PrintField();
-        Console.WriteLine(remainingShips == 0 ? "Вітаємо! Ви знищили всі кораблі!" : "Гру завершено! Ви не знищили всі кораблі.");
-    }
-
-    static void PlaceShips()
-    {
-        Random rand = new Random();
-        for (int i = 0; i < 3; i++)
-        {
-            bool placed = false;
-            while (!placed)
-            {
-                int x = rand.Next(fieldSize);
-                int y = rand.Next(fieldSize);
-                bool horizontal = rand.Next(2) == 0;
-
-                if (horizontal && y + 1 < fieldSize && field[x, y] == '~' && field[x, y + 1] == '~')
-                {
-                    ships[i] = new (int, int)[] { (x, y), (x, y + 1) };
-                    field[x, y] = field[x, y + 1] = 'S';
-                    placed = true;
-                }
-                else if (!horizontal && x + 1 < fieldSize && field[x, y] == '~' && field[x + 1, y] == '~')
-                {
-                    ships[i] = new (int, int)[] { (x, y), (x + 1, y) };
-                    field[x, y] = field[x + 1, y] = 'S';
-                    placed = true;
-                }
-            }
-        }
-
-        for (int i = 0; i < fieldSize; i++)
-            for (int j = 0; j < fieldSize; j++)
-                if (field[i, j] == 'S') field[i, j] = '~';
-    }
-
-    static void PrintField()
-    {
-        Console.WriteLine("  " + string.Join(" ", Enumerable.Range(1, fieldSize)));
-        for (int i = 0; i < fieldSize; i++)
-        {
-            Console.Write((i + 1).ToString().PadLeft(2) + " ");
-            for (int j = 0; j < fieldSize; j++)
-                Console.Write(field[i, j] + " ");
-            Console.WriteLine();
-        }
+        //Кінець гри
+        Console.WriteLine(remainingShips == 0 ? "Вітаємо! Ви знищили всі кораблі!" : $"Поразка! Лишилось {remainingShips} кораблі.");
     }
 }
