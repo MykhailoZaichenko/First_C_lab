@@ -8,13 +8,17 @@
 //Гра закінчується після вичерпання усіх пострілів, або у разі знищення усіх 
 //кораблів. Вивести повідомлення про результати гри
 
+using System.Runtime.InteropServices;
+
 class Program
 {
     static int fieldSize;
     static int shots;
     static char[,] field;
     static int remainingShips = 3;
+    //Масив кортежів в якому ми фіксуємо кількість кораблів. Вирішив використати його, бо при int[,] ships треба прописувати дуже багато для одного корабля:ships[i, 0], ships[i, 1] ships[i, 2], ships[i, 3] і це вигядає якось не гарно. 
     static (int, int)[][] ships = new (int, int)[remainingShips][];
+
 
     static void PlaceShips()
     {
@@ -32,7 +36,7 @@ class Program
                 {
                     ships[i] = new (int, int)[] { (x, y), (x, y + 1) };
                     //перевірка розміщення
-                    field[x, y] = field[x, y + 1] = 'S';
+                    //field[x, y] = field[x, y + 1] = 'S';
                     placed_ships = true;
                 }
                 //Перевірка чи можно розмістити корабель вертикально
@@ -40,7 +44,7 @@ class Program
                 {
                     ships[i] = new (int, int)[] { (x, y), (x + 1, y) };
                     //перевірка розміщення
-                    field[x, y] = field[x + 1, y] = 'S';
+                    //field[x, y] = field[x + 1, y] = 'S';
                     placed_ships = true;
                 }
             }
@@ -78,7 +82,7 @@ class Program
         {
             if (ships[i] != null)
             {
-                for (int j = 0; j<ships[i].Length; j++)
+                for (int j = 0; j < ships[i].Length; j++)
                 {
                     if (ships[i][j] == (input_x, input_y))
                     {
@@ -141,21 +145,21 @@ class Program
                 Console.Write("Введіть координату X: ");
                 if (!int.TryParse(Console.ReadLine(), out input_x) || input_x < 1 || input_x > fieldSize)
                 {
-                    Console.WriteLine("Некоректна координата X! Спробуйте ще раз.");
+                    Console.WriteLine($"Некоректна координата X! Введіть значення від 1 до {fieldSize}.");
                     continue;
                 }
 
                 Console.Write("Введіть координату Y: ");
                 if (!int.TryParse(Console.ReadLine(), out input_y) || input_y < 1 || input_y > fieldSize)
                 {
-                    Console.WriteLine("Некоректна координата Y! Спробуйте ще раз.");
+                    Console.WriteLine($"Некоректна координата Y! Спробуйте ще раз.");
                     continue;
                 }
 
                 input_x--; input_y--;
                 if (field[input_x, input_y] == 'X' || field[input_x, input_y] == '.')
                 {
-                    Console.WriteLine("Ви вже стріляли сюди! Спробуйте інше місце.");
+                    Console.WriteLine($"Ви вже стріляли сюди! Введіть значення від 1 до {fieldSize}.");
                     continue;
                 }
                 break;
