@@ -16,12 +16,12 @@ class Program
     static int shots;
     static char[,] field;
     static int remainingShips = 3;
-    static int[,] ships = new int[remainingShips, 4];
+    // Масив кортежів, в якому ми фіксуємо кількість кораблів.
+    static List<(int, int)[]> ships = new List<(int, int)[]>(remainingShips);
 
-
-    static void PlaceShips()
+    static void PlaceShips(int seed)
     {
-        Random rnd = new Random(1);
+        Random rnd = new Random(seed);
         for (int i = 0; i < remainingShips; i++)
         {
             bool placed_ships = false;
@@ -30,54 +30,46 @@ class Program
                 int x = rnd.Next(fieldSize);
                 int y = rnd.Next(fieldSize);
                 bool horizontal = rnd.Next(2) == 0;
-                //Перевірка чи можно розмістити корабель горизонтально
+                // Перевірка чи можно розмістити корабель горизонтально
                 if (horizontal && y + 1 < fieldSize && field[x, y] == '~' && field[x, y + 1] == '~')
                 {
-                    ships[i, 0] = x;
-                    ships[i, 1] = y;
-                    ships[i, 2] = x;
-                    ships[i, 3] = y + 1;
-                    //перевірка розміщення
-                    field[x, y] = field[x, y + 1] = 'S';
+                    ships.Add(new (int, int)[] { (x, y), (x, y + 1) });
+                    field[x, y] = 'S';
+                    field[x, y + 1] = 'S';
                     placed_ships = true;
                 }
-                //Перевірка чи можно розмістити корабель вертикально
+                // Перевірка чи можно розмістити корабель вертикально
                 else if (!horizontal && x + 1 < fieldSize && field[x, y] == '~' && field[x + 1, y] == '~')
                 {
-                    ships[i, 0] = x;
-                    ships[i, 1] = y;
-                    ships[i, 2] = x + 1;
-                    ships[i, 3] = y;
-                    //перевірка розміщення
-                    field[x, y] = field[x + 1, y] = 'S';
+                    ships.Add(new (int, int)[] { (x, y), (x + 1, y) });
+                    field[x, y] = 'S';
+                    field[x + 1, y] = 'S';
                     placed_ships = true;
                 }
             }
         }
-        // Очищаємо поле від тимчасових 'S'
-        for (int i = 0; i < fieldSize; i++)
-            for (int j = 0; j < fieldSize; j++)
-                if (field[i, j] == 'S') field[i, j] = '~';
     }
 
     static void PrintField()
     {
+        // Виводить верхній рядок з номерами стовпців.
         Console.Write("  ");
         for (int i = 1; i <= fieldSize; i++)
         {
             Console.Write(i + " ");
         }
         Console.WriteLine();
+
         for (int i = 0; i < fieldSize; i++)
         {
-            Console.Write((i + 1).ToString().PadLeft(2) + " "); // Виводить номер рядка починаючи з 1. А SPadLeft(2) робить ганішим вивод, тобто перетворює число в рядок, а потім додає перед числом пробіл, якщо воно однозначне, щоб усі номери рядків займали 2 символи.
+            Console.Write((i + 1).ToString().PadLeft(2) + " "); // Виводить номер рядка починаючи з 1.
             for (int j = 0; j < fieldSize; j++)
                 Console.Write(field[i, j] + " "); // Виводить рядок поля
             Console.WriteLine();
         }
     }
 
-    //Заповнюємо 'водою' поле
+    // Заповнюємо 'водою' поле
     static void FillWater()
     {
         field = new char[fieldSize, fieldSize];
@@ -86,55 +78,47 @@ class Program
                 field[i, j] = '~';
     }
 
-    //Пеевіряємо на влучання у корабель
+    // Перевіряємо на влучання у корабель
     static void HitCheck(ref int input_x, ref int input_y)
     {
         bool hit = false;
-        for (int i = 0; i < ships.GetLength(0); i++)
+        for (int i = 0; i < ships.Count; i++)
         {
-            if ((ships[i, 0] == input_x && ships[i, 1] == input_y) || (ships[i, 2] == input_x && ships[i, 3] == input_y))
+            if (ships[i] != null)
             {
-                field[input_x, input_y] = 'X';
-
-                // Позначаємо цю частину корабля як знищену
-                if (ships[i, 0] == input_x && ships[i, 1] == input_y)
+                for (int j = 0; j < ships[i].Length; j++)
                 {
-                    ships[i, 0] = ships[i, 1] = -1;
+                    if (ships[i][j] == (input_x, input_y))
+                    {
+                        field[input_x, input_y] = 'X';
+                        ships[i] = ships[i].Where((val, idx) => idx != j).ToArray();
+                        hit = true;
+                        // Перевірка, чи всі частини корабля знищені
+                        if (ships[i].Length == 0)
+                        {
+                            Console.WriteLine("Корабель знищено!");
+                            ships.RemoveAt(i);
+                            remainingShips--;
+                        }
+                        break;
+                    }
                 }
-                else
-                {
-                    ships[i, 2] = ships[i, 3] = -1;
-                }
-
-                hit = true;
-
-                // Якщо обидві частини корабля знищені, видаляємо його
-                if (ships[i, 0] == -1 && ships[i, 1] == -1 && ships[i, 2] == -1 && ships[i, 3] == -1)
-                {
-                    Console.WriteLine("Корабель знищено!");
-                    remainingShips--;
-                }
-                else
-                {
-                    Console.WriteLine("Влучили!");
-                }
-                break;
             }
         }
 
         if (!hit)
         {
-        field[input_x, input_y] = '.';
-        Console.WriteLine("Промах!");
+            field[input_x, input_y] = '.';
+            Console.WriteLine("Промах!");
         }
     }
 
     static void Main()
     {
-        //Щоб вивод був українською
+        // Щоб вивод був українською
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-        //Стартове меню
+        // Стартове меню
         Console.Write("Введіть розмір поля: ");
         while (!int.TryParse(Console.ReadLine(), out fieldSize) || fieldSize <= 2)
         {
@@ -149,15 +133,23 @@ class Program
             Console.Write("Введіть кількість пострілів: ");
         }
 
-        //Заповнюємо "водою" поле
+        // Заповнюємо "водою" поле
         FillWater();
-        //Додаємо кораблі
-        PlaceShips();
 
-        //Основнйи геймплей
+        for (int seed = 1; seed <= 100; seed++)
+        {
+            Console.WriteLine($"Поле з сідом {seed}:");
+            ships.Clear();
+            FillWater(); // Перезаповнюємо поле водою для кожного нового сіду
+            PlaceShips(seed);
+            PrintField();
+            Console.WriteLine();
+        }
+
+        // Основний геймплей
         while (shots > 0 && remainingShips > 0)
         {
-            Console.Clear();
+            //Console.Clear();
             PrintField();
 
             int input_x, input_y;
@@ -180,13 +172,13 @@ class Program
                 input_x--; input_y--;
                 if (field[input_x, input_y] == 'X' || field[input_x, input_y] == '.')
                 {
-                    Console.WriteLine("Ви вже стріляли сюди!");
+                    Console.WriteLine($"Ви вже стріляли сюди! Введіть значення від 1 до {fieldSize}.");
                     continue;
                 }
                 break;
             }
 
-            //Перевірка на влучання у корабель
+            // Перевірка на влучання у корабель
             HitCheck(ref input_x, ref input_y);
 
             shots--;
@@ -196,7 +188,7 @@ class Program
 
         Console.Clear();
         PrintField();
-        //Кінець гри
+        // Кінець гри
         Console.WriteLine(remainingShips == 0 ? "Вітаємо! Ви знищили всі кораблі!" : $"Поразка! Лишилось {remainingShips} кораблі.");
     }
 }
