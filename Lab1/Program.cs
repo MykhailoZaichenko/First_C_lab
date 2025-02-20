@@ -21,7 +21,7 @@ class Program
 
     static void PlaceShips()
     {
-        Random rnd = new Random();
+        Random rnd = new Random(1);
         for (int i = 0; i < remainingShips; i++)
         {
             bool placed_ships = false;
@@ -38,8 +38,8 @@ class Program
                     ships[i, 2] = x;
                     ships[i, 3] = y + 1;
                     //перевірка розміщення
-                    //field[x, y] = field[x, y + 1];
-                    field[x, y] = field[x, y + 1] = 'S';
+                    field[x, y] = 'S';
+                    field[x, y + 1] = 'S';
                     placed_ships = true;
                 }
                 //Перевірка чи можно розмістити корабель вертикально
@@ -50,8 +50,8 @@ class Program
                     ships[i, 2] = x + 1;
                     ships[i, 3] = y;
                     //перевірка розміщення
-                    //field[x, y] = field[x + 1, y];
-                    field[x, y] = field[x + 1, y] = 'S';
+                    field[x, y] = 'S';
+                    field[x + 1, y] = 'S';
                     placed_ships = true;
                 }
             }
