@@ -54,11 +54,15 @@ class Program
 
     static void PrintField()
     {
-        //Виводить верхній рядок з номерами стовпців. Знайшов декілька облегшуючих фунцій Join() робить послідовність з пробілами, а Enumerable.Range() створює послідовність чисел, щоб не писати цикли.
-        Console.WriteLine("  " + string.Join(" ", Enumerable.Range(1, fieldSize)));
+        Console.Write("  ");
+        for (int i = 1; i <= fieldSize; i++)
+        {
+            Console.Write(i + " ");
+        }
+        Console.WriteLine();
         for (int i = 0; i < fieldSize; i++)
         {
-            Console.Write((i + 1).ToString().PadLeft(2) + " "); // Виводить номер рядка починаючи з 1. А ToString().PadLeft(2) робить ганішим вивод, тобто перетворює число в рядок, а потім додає перед числом пробіл, якщо воно однозначне, щоб усі номери рядків займали 2 символи.
+            Console.Write((i + 1).ToString().PadLeft(2) + " "); // Виводить номер рядка починаючи з 1. А SPadLeft(2) робить ганішим вивод, тобто перетворює число в рядок, а потім додає перед числом пробіл, якщо воно однозначне, щоб усі номери рядків займали 2 символи.
             for (int j = 0; j < fieldSize; j++)
                 Console.Write(field[i, j] + " "); // Виводить рядок поля
             Console.WriteLine();
