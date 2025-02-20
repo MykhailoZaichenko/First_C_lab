@@ -16,8 +16,7 @@ class Program
     static int shots;
     static char[,] field;
     static int remainingShips = 3;
-    //Масив кортежів в якому ми фіксуємо кількість кораблів. Вирішив використати його, бо при int[,] ships треба прописувати дуже багато для одного корабля: ships[i, 0], ships[i, 1] ships[i, 2], ships[i, 3] і це вигядає якось не гарно. 
-    static (int, int)[][] ships = new (int, int)[remainingShips][];
+    static int[,] ships = new int[remainingShips, 4];
 
 
     static void PlaceShips()
@@ -34,17 +33,25 @@ class Program
                 //Перевірка чи можно розмістити корабель горизонтально
                 if (horizontal && y + 1 < fieldSize && field[x, y] == '~' && field[x, y + 1] == '~')
                 {
-                    ships[i] = new (int, int)[] { (x, y), (x, y + 1) };
+                    ships[i, 0] = x;
+                    ships[i, 1] = y;
+                    ships[i, 2] = x;
+                    ships[i, 3] = y + 1;
                     //перевірка розміщення
-                    //field[x, y] = field[x, y + 1] = 'S';
+                    //field[x, y] = field[x, y + 1];
+                    field[x, y] = field[x, y + 1] = 'S';
                     placed_ships = true;
                 }
                 //Перевірка чи можно розмістити корабель вертикально
                 else if (!horizontal && x + 1 < fieldSize && field[x, y] == '~' && field[x + 1, y] == '~')
                 {
-                    ships[i] = new (int, int)[] { (x, y), (x + 1, y) };
+                    ships[i, 0] = x;
+                    ships[i, 1] = y;
+                    ships[i, 2] = x + 1;
+                    ships[i, 3] = y;
                     //перевірка розміщення
-                    //field[x, y] = field[x + 1, y] = 'S';
+                    //field[x, y] = field[x + 1, y];
+                    field[x, y] = field[x + 1, y] = 'S';
                     placed_ships = true;
                 }
             }
@@ -82,27 +89,35 @@ class Program
     static void HitCheck(ref int input_x, ref int input_y)
     {
         bool hit = false;
-        for (int i = 0; i < ships.Length; i++)
+        for (int i = 0; i < ships.GetLength(0); i++)
         {
-            if (ships[i] != null)
+            if ((ships[i, 0] == input_x && ships[i, 1] == input_y) || (ships[i, 2] == input_x && ships[i, 3] == input_y))
             {
-                for (int j = 0; j < ships[i].Length; j++)
+                field[input_x, input_y] = 'X';
+
+                // Позначаємо цю частину корабля як знищену
+                if (ships[i, 0] == input_x && ships[i, 1] == input_y)
                 {
-                    if (ships[i][j] == (input_x, input_y))
-                    {
-                        field[input_x, input_y] = 'X';
-                        ships[i][j] = (-1, -1);
-                        hit = true;
-                        //Я трошки почитав документації і зрозумів, що в С# не можна видалити елемент з масиву, тож реалізовано способом перенесення в точку -1, -1. На що і є перевірка.
-                        if (Array.TrueForAll(ships[i], pos => pos == (-1, -1)))
-                        {
-                            Console.WriteLine("Корабель знищено!");
-                            ships[i] = null;
-                            remainingShips--;
-                        }
-                        break;
-                    }
+                    ships[i, 0] = ships[i, 1] = -1;
                 }
+                else
+                {
+                    ships[i, 2] = ships[i, 3] = -1;
+                }
+
+                hit = true;
+
+                // Якщо обидві частини корабля знищені, видаляємо його
+                if (ships[i, 0] == -1 && ships[i, 1] == -1 && ships[i, 2] == -1 && ships[i, 3] == -1)
+                {
+                    Console.WriteLine("Корабель знищено!");
+                    remainingShips--;
+                }
+                else
+                {
+                    Console.WriteLine("Влучили!");
+                }
+                break;
             }
         }
 
@@ -164,7 +179,7 @@ class Program
                 input_x--; input_y--;
                 if (field[input_x, input_y] == 'X' || field[input_x, input_y] == '.')
                 {
-                    Console.WriteLine($"Ви вже стріляли сюди! Введіть значення від 1 до {fieldSize}.");
+                    Console.WriteLine("Ви вже стріляли сюди!");
                     continue;
                 }
                 break;
